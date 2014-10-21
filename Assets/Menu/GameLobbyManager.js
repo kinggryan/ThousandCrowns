@@ -35,7 +35,7 @@ class GameLobbyManager extends Photon.MonoBehaviour {
     function OnJoinedRoom()
     {
         Debug.Log("Room Joined");
-        photonView.viewID = 5;
+   //     photonView.viewID = 5;
     }
 
     function OnGUI()

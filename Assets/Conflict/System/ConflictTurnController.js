@@ -30,6 +30,7 @@ class ConflictTurnController extends Photon.MonoBehaviour {
 	}
 	
 	function EndTurn() {
+		// End Turn
 		// Activate all actions
 		actionQueue.ActivateAllAbilitiesInQueue();
 		actionQueue.SetQueuedDiplomacyStates();
@@ -39,9 +40,14 @@ class ConflictTurnController extends Photon.MonoBehaviour {
 			currentSite.EndTurn();
 		}
 		
-		// TODO refresh units
+		// Start New Turn
+		for(var currentUnit in GameObject.FindObjectsOfType(ConflictUnit)) {
+			currentUnit.StartTurn();
+		}
 		turnDone = false;
 		numberOfDonePlayers = 0;
+		
+		// TODO add end game method call here
 	}
 	
 	// MARK: RPCs

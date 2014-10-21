@@ -59,6 +59,9 @@ class ConflictPlayerManager extends Photon.MonoBehaviour {
 				unit.defaultColor = playerColorList[unit.controllingPlayerNumber];
 				unit.renderer.material.color = unit.defaultColor;
 			}
+			
+			// set units to unused
+			unit.used = false;
 		}
 	}
 }

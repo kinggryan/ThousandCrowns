@@ -9,7 +9,6 @@
 class ConflictUnitAbilityButton extends ConflictSelectablePiece {
 	// Properties
 	var unit: ConflictUnit = null;
-	
 	var ability: UnitAbility = null;
 	
 	// Methods

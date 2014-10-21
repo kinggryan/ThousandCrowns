@@ -27,8 +27,8 @@ class ConflictUnit extends ConflictSelectablePiece {
 	// Abilities
 	var abilityButtonPrefab: GameObject;
 	var abilityButtonObjects: GameObject[] = null;
-	var abilities: UnitAbility[] = [UnitAbilityMove(),UnitAbilityInfluence()];
-	var numberOfAbilities: int = 2;
+	private var abilities: UnitAbility[] = [UnitAbilityMove(),UnitAbilityAttack(),UnitAbilityInfluence()];
+	var numberOfAbilities: int = 3;
 	
 	// Methods
 	function Start() {
@@ -51,7 +51,7 @@ class ConflictUnit extends ConflictSelectablePiece {
 	// MARK: override methods
 	function Select() {
 		// if controlled by local player, display abils 
-		if(controllingPlayer == PhotonNetwork.player) {
+		if(controllingPlayer == PhotonNetwork.player && !used) {
 			// make buttons
 			abilityButtonObjects = new GameObject[numberOfAbilities];
 			var currentAbilityIndex = 0;
@@ -64,7 +64,7 @@ class ConflictUnit extends ConflictSelectablePiece {
 				abilityButtonData.ability = abilities[currentAbilityIndex];
 				
 				currentAbilityIndex++;
-				offset.z += 1;
+				offset.z += 1.5;
 			}
 		}
 		
@@ -84,8 +84,15 @@ class ConflictUnit extends ConflictSelectablePiece {
 		// When something else is clicked and this unit is selected, give them the selection unless the clicked object
 		//		was an ability owned by this unit
 		
+		// if this unit is used already, we know we can give up selection
+		if(used) {
+			Deselect();
+			return true;
+		}			
+		
 		// If one of this unit's abilities was clicked, then allow it to be selected
 		for(var currentAbility in abilityButtonObjects) {
+			
 			// get ConflictUnitAbilityButton from ability button object
 			var abilityButtonData = currentAbility.GetComponent(ConflictUnitAbilityButton) as ConflictUnitAbilityButton;
 			
@@ -103,6 +110,7 @@ class ConflictUnit extends ConflictSelectablePiece {
 		return true;
 	}
 	
+	// MARK: Methods
 	function UseAbilityGivenIndex(index: int, targetViewID: int) {
 		if (index < 0 || index > numberOfAbilities) {
 			Debug.LogError("Illegal ability index: " +index);
@@ -131,5 +139,9 @@ class ConflictUnit extends ConflictSelectablePiece {
 	function ReceiveDamage(damage: int) {
 		// TODO this needs to deal with death
 		health -= damage;
+	}
+	
+	function StartTurn() {
+		used = false;
 	}
 }

@@ -29,6 +29,7 @@ class ConflictSite extends ConflictSelectablePiece {
 	// Methods
 	
 	function ConflictSite() {
+		// increment number of uncaptured sites, as all sites start neutral
 		uncapturedSitesRemaining++;
 		statFrameImage = Resources.Load("Siteframe");
 		
@@ -183,7 +184,18 @@ class ConflictSite extends ConflictSelectablePiece {
 	function EndTurn() {
 		// at the end of the turn, resolve influence and attacks. Remember, attacks resolve second - defenseless sites yield to
 		//		conquerers, not merchants
+		var startingController = controllingPlayer;
+		
 		ResolveTurnInfluence();
 		ResolveTurnAttacks();
+		
+		// if this site was captured this turn from neutral, mark it as uncaptured
+		if (startingController == null && controllingPlayer != null) {
+			uncapturedSitesRemaining--;
+		}
+		else if(startingController != null && controllingPlayer == null) {
+			// if this site was controlled by someone but now isn't, increase number of uncaptured sites
+			uncapturedSitesRemaining++;
+		}
 	}	
 }

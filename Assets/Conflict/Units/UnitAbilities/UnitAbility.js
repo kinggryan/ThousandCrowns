@@ -26,7 +26,11 @@ class UnitAbility {
 		// enqueue it up!
 		var actionQueue = GameObject.FindObjectOfType(ConflictActionQueue) as ConflictActionQueue;
 		actionQueue.QueueAbilityLocally(qInfo);
+		
+		// tell unit that it's been used
+		unit.used = true;
 	}
+	
 	function SetAndCheckTarget(target: ConflictSelectablePiece) {
 		// This method is called by the ability button to determine whether a given target is valid. 
 		return true;
@@ -67,6 +71,7 @@ class UnitAbilityMove extends UnitAbility {
 				// if we're on an enemy space, we can only move to our previous space
 				if(unit.boardSpace.site != null && unit.boardSpace.site.controllingPlayer != null) {
 					var diplomacyManager = GameObject.FindObjectOfType(ConflictDiplomacyManager) as ConflictDiplomacyManager;
+					var playerManager = GameObject.FindObjectOfType(ConflictPlayerManager) as ConflictPlayerManager;
 					if(diplomacyManager.GetRelationship(PhotonNetwork.player,unit.boardSpace.site.controllingPlayer) == PlayerRelationship.enemy && target != unit.previousBoardSpace) {
 						ConflictLog.LogMessage("Can only retreat from enemy space");
 						return false;
@@ -93,6 +98,9 @@ class UnitAbilityMove extends UnitAbility {
 		// enqueue it up!
 		var actionQueue = GameObject.FindObjectOfType(ConflictActionQueue) as ConflictActionQueue;
 		actionQueue.QueueAbilityLocallyAndRemotely(qInfo);
+		
+		// tell unit that it's been used
+		unit.used = true;
 	}
 }
 
@@ -126,7 +134,10 @@ class UnitAbilityInfluence extends UnitAbility {
 	function SetAndCheckTarget(target: ConflictSelectablePiece) {
 		// if this unit's site is controlled by an ally, return false and put a message in the log stating why
 		var diplomacyManager = GameObject.FindObjectOfType(ConflictDiplomacyManager) as ConflictDiplomacyManager;
-		if(unit.boardSpace.site.controllingPlayer != null && diplomacyManager.GetRelationship(PhotonNetwork.player,unit.boardSpace.site.controllingPlayer) != PlayerRelationship.enemy) {
+		var playerManager = GameObject.FindObjectOfType(ConflictPlayerManager) as ConflictPlayerManager;
+		if(unit.boardSpace.site.controllingPlayer != null && 
+		diplomacyManager.GetRelationship(PhotonNetwork.player,unit.boardSpace.site.controllingPlayer) != PlayerRelationship.enemy &&
+		diplomacyManager.relationshipTransitionStates[playerManager.playerList.IndexOf(unit.boardSpace.site.controllingPlayer)] != PlayerRelationshipTransitionState.enemyDeclared) {
 			ConflictLog.LogMessage("Declare this player an enemy first!");
 			return false;
 		}
@@ -142,6 +153,9 @@ class UnitAbilityInfluence extends UnitAbility {
 		// enqueue it up!
 		var actionQueue = GameObject.FindObjectOfType(ConflictActionQueue) as ConflictActionQueue;
 		actionQueue.QueueAbilityLocallyAndRemotely(qInfo);
+		
+		// tell unit that it's been used
+		unit.used = true;
 	}
 }
 
@@ -180,7 +194,10 @@ class UnitAbilityAttack extends UnitAbility {
 	function SetAndCheckTarget(target: ConflictSelectablePiece) {
 		// if this unit's site is controlled by an ally, return false and put a message in the log stating why
 		var diplomacyManager = GameObject.FindObjectOfType(ConflictDiplomacyManager) as ConflictDiplomacyManager;
-		if(unit.boardSpace.site.controllingPlayer != null && diplomacyManager.GetRelationship(PhotonNetwork.player,unit.boardSpace.site.controllingPlayer) != PlayerRelationship.enemy) {
+		var playerManager = GameObject.FindObjectOfType(ConflictPlayerManager) as ConflictPlayerManager;
+		if(unit.boardSpace.site.controllingPlayer != null && 
+			diplomacyManager.GetRelationship(PhotonNetwork.player,unit.boardSpace.site.controllingPlayer) != PlayerRelationship.enemy && 
+			diplomacyManager.relationshipTransitionStates[playerManager.playerList.IndexOf(unit.boardSpace.site.controllingPlayer)] != PlayerRelationshipTransitionState.enemyDeclared) {
 			ConflictLog.LogMessage("Declare this player an enemy first!");
 			return false;
 		}
@@ -196,5 +213,8 @@ class UnitAbilityAttack extends UnitAbility {
 		// enqueue it up!
 		var actionQueue = GameObject.FindObjectOfType(ConflictActionQueue) as ConflictActionQueue;
 		actionQueue.QueueAbilityLocallyAndRemotely(qInfo);
+		
+		// tell unit that it's been used
+		unit.used = true;
 	}
 }
