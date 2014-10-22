@@ -40,10 +40,20 @@ class ConflictTurnController extends Photon.MonoBehaviour {
 			currentSite.EndTurn();
 		}
 		
+		// Resolve unit battles
+		for(var currentUnit in GameObject.FindObjectsOfType(ConflictUnit)) {
+			currentUnit.BattleEnemies();
+		}
+		for(var currentUnit in GameObject.FindObjectsOfType(ConflictUnit)) {
+			currentUnit.ResolveBattles();
+		}
+		
+		
 		// Start New Turn
 		for(var currentUnit in GameObject.FindObjectsOfType(ConflictUnit)) {
 			currentUnit.StartTurn();
 		}
+		
 		turnDone = false;
 		numberOfDonePlayers = 0;
 		

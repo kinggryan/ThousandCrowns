@@ -21,6 +21,7 @@ class ConflictSite extends ConflictSelectablePiece {
 	static var uncapturedSitesRemaining: int = 0;		// tracks how many uncaptured sites remain, for determining game end.
 
 	var statFrameImage: Texture;
+	var statTextMeshObject: GameObject;
 	
 	// Influence and Attack queues
 	var playerTurnInfluence: int[] = new int[5];
@@ -42,17 +43,15 @@ class ConflictSite extends ConflictSelectablePiece {
 	
 	function Start() {
 		playerManager = GameObject.FindObjectOfType(ConflictPlayerManager);
-	}
-	
-	function OnGUI() {
-		// Display stats
-		// Get screen coordinates
-		var screenCoordinates = Camera.main.WorldToScreenPoint(transform.position);
-		var statFrame = Rect(screenCoordinates.x-30,Screen.height-screenCoordinates.y + 15,125,25);
 		
-		// draw stats
-		GUI.Label(statFrame,statFrameImage);
-		GUI.Label(statFrame,"    "+attack+"     "+allegiance + "    "+defense);
+		// Add text component
+		var verticalRotation = Quaternion.AngleAxis(90,Vector3.right);
+		statTextMeshObject = GameObject.Instantiate(Resources.Load("SiteStatFrameObject") as GameObject,transform.position + Vector3(0,1,0),verticalRotation);
+		var text : TextMesh = statTextMeshObject.GetComponent(TextMesh) as TextMesh;
+		text.text = "Site";
+		text.anchor = TextAnchor.MiddleCenter;
+		text.alignment = TextAlignment.Center;
+		text.color = Color.black;
 	}
 	
 	// Conflict Methods

@@ -50,6 +50,7 @@ class UnitAbilityMove extends UnitAbility {
 
 	// Methods
 	function UnitAbilityMove() {
+		// Default constructor move 1
 		requiresTargets = true;
 		helpText = "Move 1";
 	}
@@ -93,7 +94,6 @@ class UnitAbilityMove extends UnitAbility {
 		qInfo.unit = unit;
 		qInfo.abilityIndex = abilityIndex;
 		qInfo.targetViewID = targetSpace.photonView.viewID;
-		Debug.Log(targetSpace.photonView.viewID);
 		
 		// enqueue it up!
 		var actionQueue = GameObject.FindObjectOfType(ConflictActionQueue) as ConflictActionQueue;
@@ -115,7 +115,15 @@ class UnitAbilityInfluence extends UnitAbility {
 	var influenceValue: int = 1;	
 
 	// Methods
+	// MARK: Constructors
+	// Default gives influence 1
 	function UnitAbilityInfluence() {
+		requiresTargets = false;
+		helpText = "Influence " + influenceValue;
+	}
+	
+	function UnitAbilityInfluence(initialInfluence: int) {
+		influenceValue = initialInfluence;
 		requiresTargets = false;
 		helpText = "Influence " + influenceValue;
 	}
@@ -170,7 +178,14 @@ class UnitAbilityAttack extends UnitAbility {
 	var attackValue: int = 1;	
 
 	// Methods
+	// MARK: Constructors
 	function UnitAbilityAttack() {
+		requiresTargets = false;
+		helpText = "Attack " + attackValue;
+	}
+	
+	function UnitAbilityAttack(a: int) {
+		attackValue = a;
 		requiresTargets = false;
 		helpText = "Attack " + attackValue;
 	}

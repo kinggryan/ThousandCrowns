@@ -14,25 +14,32 @@ class ConflictUnit extends ConflictSelectablePiece {
 													//		can hardcode ownership for these early versions
 	
 	// Stats
-	var attack: int = 0;
-	var influence: int = 0;
-	var health:		int  = 0;
-	var maximumHealth: int = 0;
+	private var attack: int = 1;
+	private var influence: int = 1;
+	private var health:		int  = 6;
+	private var maximumHealth: int = 6;
 	
 	// game properties
 	var used: boolean = true;
 	var boardSpace: ConflictBoardSpace = null;
 	var previousBoardSpace: ConflictBoardSpace = null;	// when units try to move off of enemy spaces, they MUST move to their previous space
+	var queuedDamage: int = 0;
 	
 	// Abilities
 	var abilityButtonPrefab: GameObject;
 	var abilityButtonObjects: GameObject[] = null;
-	private var abilities: UnitAbility[] = [UnitAbilityMove(),UnitAbilityAttack(),UnitAbilityInfluence()];
+	var enemyAbilityPrefab: GameObject;
+	private var abilities: UnitAbility[] = [UnitAbilityMove(),UnitAbilityAttack(attack),UnitAbilityInfluence(influence)];
 	var numberOfAbilities: int = 3;
+	var knownAbilityDescriptions: String[];
 	
 	// Methods
 	function Start() {
 		abilityButtonPrefab = Resources.Load("ConflictUnitAbilityButtonObject") as GameObject;
+		enemyAbilityPrefab = Resources.Load("ConflictUnitEnemyAbilityObject") as GameObject;
+		
+		// initialize ability description array
+		knownAbilityDescriptions = new String[numberOfAbilities];
 		
 		// Initialize ability data
 		var currentAbilityIndex = 0;
@@ -40,9 +47,13 @@ class ConflictUnit extends ConflictSelectablePiece {
 			currentAbility.unit = this;
 			currentAbility.abilityIndex = currentAbilityIndex;
 			
+			// add an unknown ability to ability descriptions
+			knownAbilityDescriptions[currentAbilityIndex] = "???";
+			
 			// increment ability index
 			currentAbilityIndex++;
 		}
+		
 		
 		// initialize previous spcae to this space
 		previousBoardSpace = boardSpace;
@@ -67,6 +78,21 @@ class ConflictUnit extends ConflictSelectablePiece {
 				offset.z += 1.5;
 			}
 		}
+		else if(controllingPlayer != PhotonNetwork.player) {
+			// show known abilities of opponents' units
+			abilityButtonObjects = new GameObject[numberOfAbilities];
+			var currentKnownAbilityIndex = 0;
+			var currentOffset = Vector3(0,0,0);
+		
+			for(var currentAbility in knownAbilityDescriptions) {
+				abilityButtonObjects[currentKnownAbilityIndex] = GameObject.Instantiate(enemyAbilityPrefab,transform.position+Vector3(8,3,0)+currentOffset,Quaternion.identity);
+				var textMesh = abilityButtonObjects[currentKnownAbilityIndex].GetComponentInChildren(TextMesh) as TextMesh;
+				textMesh.text = currentAbility;
+				
+				currentKnownAbilityIndex++;
+				currentOffset.z += 1.5;
+			}
+		}
 		
 		super.Select();
 	}
@@ -75,6 +101,7 @@ class ConflictUnit extends ConflictSelectablePiece {
 		// remove buttons
 		for(var button in abilityButtonObjects) {
 			GameObject.Destroy(button,0);
+			Debug.Log("Destroying");
 		}
 		
 		super.Deselect();
@@ -84,8 +111,8 @@ class ConflictUnit extends ConflictSelectablePiece {
 		// When something else is clicked and this unit is selected, give them the selection unless the clicked object
 		//		was an ability owned by this unit
 		
-		// if this unit is used already, we know we can give up selection
-		if(used) {
+		// if this unit is used already or is not ours, we know we can give up selection
+		if(used || controllingPlayer != PhotonNetwork.player) {
 			Deselect();
 			return true;
 		}			
@@ -120,6 +147,9 @@ class ConflictUnit extends ConflictSelectablePiece {
 		Debug.Log("Using abil: " +abilities[index].helpText);
 		Debug.Log(abilities[index]);
 		abilities[index].Activate(targetViewID);
+		
+		// add it to known abilities
+		knownAbilityDescriptions[index] = abilities[index].helpText;
 	}
 	
 	function MoveToSpace(targetSpace: ConflictBoardSpace) {
@@ -137,8 +167,33 @@ class ConflictUnit extends ConflictSelectablePiece {
 	}
 	
 	function ReceiveDamage(damage: int) {
-		// TODO this needs to deal with death
 		health -= damage;
+		
+		if (health <= 0) {
+			// TODO this needs to deal with death
+			ConflictLog.LogMessage("DEAD!");
+		}
+	}
+	
+	function QueueDamage(damage: int) {
+		queuedDamage += damage;
+	}
+	
+	function BattleEnemies() {
+		// iterate through units on this space
+		for(var currentUnit in boardSpace.units) {
+			//if they're an enemy
+			var diplomacyManager = GameObject.FindObjectOfType(ConflictDiplomacyManager) as ConflictDiplomacyManager;
+			if(diplomacyManager.GetRelationship(currentUnit.controllingPlayer, controllingPlayer) == PlayerRelationship.enemy) {
+				// queue your damage on them
+				currentUnit.QueueDamage(attack);
+			}
+		}
+	}
+	
+	function ResolveBattles() {
+		// deal all queued damage to yourself
+		ReceiveDamage(queuedDamage);
 	}
 	
 	function StartTurn() {

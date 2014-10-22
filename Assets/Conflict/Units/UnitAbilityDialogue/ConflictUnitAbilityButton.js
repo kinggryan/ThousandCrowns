@@ -12,15 +12,13 @@ class ConflictUnitAbilityButton extends ConflictSelectablePiece {
 	var ability: UnitAbility = null;
 	
 	// Methods
-	function OnGUI() {
-		// Draw ability text on self
-		var screenPosition = Camera.main.WorldToScreenPoint(transform.position + Vector3(-6,0,1));
-		var textPosition = Rect(screenPosition.x,Screen.height - screenPosition.y,100,30);	
-		GUI.contentColor = Color.black;
-		GUI.Label(textPosition,ability.helpText);
-	}
 	
 	// MARK: Override methods
+	function Start() {
+		var text = GetComponentInChildren(TextMesh) as TextMesh;
+		text.text = ability.helpText;	
+	}
+	
 	function Deselect() {
 		unit.Deselect();
 		super.Deselect();	
