@@ -101,7 +101,6 @@ class ConflictUnit extends ConflictSelectablePiece {
 		// remove buttons
 		for(var button in abilityButtonObjects) {
 			GameObject.Destroy(button,0);
-			Debug.Log("Destroying");
 		}
 		
 		super.Deselect();

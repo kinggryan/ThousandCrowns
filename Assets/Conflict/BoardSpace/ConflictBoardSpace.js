@@ -24,7 +24,11 @@ class ConflictBoardSpace extends ConflictSelectablePiece {
 //		photonView.viewID = allocatedBoardSpacePhotonViewID++;
 		//Layout units
 		LayoutUnits();
-		site = gameObject.AddComponent(ConflictSite);
+		
+		// set site to blank site if there is no site already set
+		site = gameObject.GetComponent(ConflictSite);
+		if (site == null)	
+			site = gameObject.AddComponent(ConflictSite);
 	}
 	
 	function DrawLinesToConnectedSpaces() {
@@ -60,6 +64,11 @@ class ConflictBoardSpace extends ConflictSelectablePiece {
 			// rotate direction of placement
 			layoutDirection = layoutRotation*layoutDirection;
 		}
+	}
+	
+	function SetDefaultColor(color: Color) {
+		defaultColor = color;
+		renderer.material.color = defaultColor;
 	}
 }
 	

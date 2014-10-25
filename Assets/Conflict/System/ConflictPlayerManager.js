@@ -11,6 +11,9 @@ class ConflictPlayerManager extends Photon.MonoBehaviour {
 	var playerList: List.<PhotonPlayer> = List.<PhotonPlayer>();
 	var playerColorList: Color[] = [Color(1,0,1),Color.red,Color.green,Color.white,Color.yellow];
 	var playerColorStringList: String[] = ["Purple","Red","Green","White","Yellow"];
+	var synchronizedRNGList: List.<int> = List.<int>();			// this list of random ints is sent by the master client to all other clients
+																//		and updated as needed. It is used whenever a random number must be generated on
+																//		all clients for the same purpose to ensure everyone uses the same number.
 	
 	// Methods
 	function Start() {
@@ -25,7 +28,16 @@ class ConflictPlayerManager extends Photon.MonoBehaviour {
 			// Now that player numbers are set, let's find the diplomacy manager and set relationships
 			var diplomacyManager = GameObject.FindObjectOfType(ConflictDiplomacyManager) as ConflictDiplomacyManager;
 			diplomacyManager.InitializePlayerRelationships();
+			
+			// Add some large number of RNs to clients
+			for(var i = 0 ; i < 30 ; i++) {
+				var newRandomNumber = Random.Range(0,int.MaxValue);
+				synchronizedRNGList.Add(newRandomNumber);
+				photonView.RPC("EnqueueRandomNumber",PhotonTargets.Others,newRandomNumber);
+			}
 		}
+		
+		
 	}	
 	
 	function AssignPlayerNumbers() {
@@ -33,6 +45,20 @@ class ConflictPlayerManager extends Photon.MonoBehaviour {
 		for(var currentPlayer in PhotonNetwork.playerList) {
 			playerList.Add(currentPlayer);
 		}
+	}
+	
+	function DequeueRandomNumber() : int {
+		var returnValue = synchronizedRNGList[0];
+		synchronizedRNGList.RemoveAt(0);
+		
+		if(PhotonNetwork.isMasterClient) {
+			// generate a new random number and send to everyone
+			var newRandomNumber : int = Random.Range(0,int.MaxValue);
+			synchronizedRNGList.Add(newRandomNumber);
+			photonView.RPC("EnqueueRandomNumber",PhotonTargets.Others,newRandomNumber);
+		}
+		
+		return returnValue;
 	}
 	
 	// MARK: RPCs
@@ -63,5 +89,10 @@ class ConflictPlayerManager extends Photon.MonoBehaviour {
 			// set units to unused
 			unit.used = false;
 		}
+	}
+	
+	@RPC
+	function EnqueueRandomNumber(number: int) {
+		synchronizedRNGList.Add(number);
 	}
 }

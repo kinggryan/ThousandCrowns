@@ -134,8 +134,18 @@ class UnitAbilityInfluence extends UnitAbility {
 		var targetSpace = unit.boardSpace;
 		
 		if(targetSpace.site != null) {
+			var bonusInfluence: int = 0;
+			// check adjacent sites for a temple you control
+			for(var connectedBoardSpace in targetSpace.connectedBoardSpaces) {
+				if(connectedBoardSpace.site != null && connectedBoardSpace.site.typeName == "temple" && connectedBoardSpace.site.controllingPlayer == unit.controllingPlayer) {
+					// add bonus influence
+					bonusInfluence = 1;
+					ConflictLog.LogMessage("bonus");
+				}
+			}
+			
 			// influence this space
-			targetSpace.site.InfluencedByPlayer(influenceValue,unit.controllingPlayer);
+			targetSpace.site.InfluencedByPlayer(influenceValue + bonusInfluence,unit.controllingPlayer);
 		}
 	}
 	
@@ -144,6 +154,7 @@ class UnitAbilityInfluence extends UnitAbility {
 		var diplomacyManager = GameObject.FindObjectOfType(ConflictDiplomacyManager) as ConflictDiplomacyManager;
 		var playerManager = GameObject.FindObjectOfType(ConflictPlayerManager) as ConflictPlayerManager;
 		if(unit.boardSpace.site.controllingPlayer != null && 
+		unit.boardSpace.site.controllingPlayer != PhotonNetwork.player &&
 		diplomacyManager.GetRelationship(PhotonNetwork.player,unit.boardSpace.site.controllingPlayer) != PlayerRelationship.enemy &&
 		diplomacyManager.relationshipTransitionStates[playerManager.playerList.IndexOf(unit.boardSpace.site.controllingPlayer)] != PlayerRelationshipTransitionState.enemyDeclared) {
 			ConflictLog.LogMessage("Declare this player an enemy first!");
@@ -211,6 +222,7 @@ class UnitAbilityAttack extends UnitAbility {
 		var diplomacyManager = GameObject.FindObjectOfType(ConflictDiplomacyManager) as ConflictDiplomacyManager;
 		var playerManager = GameObject.FindObjectOfType(ConflictPlayerManager) as ConflictPlayerManager;
 		if(unit.boardSpace.site.controllingPlayer != null && 
+			unit.boardSpace.site.controllingPlayer != PhotonNetwork.player &&
 			diplomacyManager.GetRelationship(PhotonNetwork.player,unit.boardSpace.site.controllingPlayer) != PlayerRelationship.enemy && 
 			diplomacyManager.relationshipTransitionStates[playerManager.playerList.IndexOf(unit.boardSpace.site.controllingPlayer)] != PlayerRelationshipTransitionState.enemyDeclared) {
 			ConflictLog.LogMessage("Declare this player an enemy first!");
