@@ -2,9 +2,6 @@
 
 class ConflictSiteCastle extends ConflictSite {
 	function ConflictSiteCastle() {
-		// call super constructor
-		super();
-		
 		// set stats and typename
 		typeName = "castle";
 		attack = 2;
@@ -13,5 +10,7 @@ class ConflictSiteCastle extends ConflictSite {
 		
 		defense = maximumDefense;
 		allegiance = maximumAllegiance;
+		
+		super.Start();
 	}
 }

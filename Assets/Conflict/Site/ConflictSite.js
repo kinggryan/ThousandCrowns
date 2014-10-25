@@ -18,6 +18,7 @@ class ConflictSite extends MonoBehaviour {
 
 	var controllingPlayer: PhotonPlayer = null;		// controlling player of this site
 	var playerManager: ConflictPlayerManager = null;
+	var statFrame: ConflictSiteFrame = null;
 	
 	static var uncapturedSitesRemaining: int = 0;		// tracks how many uncaptured sites remain, for determining game end.
 
@@ -33,7 +34,6 @@ class ConflictSite extends MonoBehaviour {
 	function ConflictSite() {
 		// increment number of uncaptured sites, as all sites start neutral
 		uncapturedSitesRemaining++;
-		statFrameImage = Resources.Load("Siteframe");
 		
 		// set influence and attack arrays to 0
 		for(var i = 0 ; i < 5 ; i++) {
@@ -46,13 +46,13 @@ class ConflictSite extends MonoBehaviour {
 		playerManager = GameObject.FindObjectOfType(ConflictPlayerManager);
 		
 		// Add text component
-		var verticalRotation = Quaternion.AngleAxis(90,Vector3.right);
-		statTextMeshObject = GameObject.Instantiate(Resources.Load("SiteStatFrameObject") as GameObject,transform.position + Vector3(0,1,0),verticalRotation);
-		var text : TextMesh = statTextMeshObject.GetComponent(TextMesh) as TextMesh;
-		text.text = typeName;
-		text.anchor = TextAnchor.MiddleCenter;
-		text.alignment = TextAlignment.Center;
-		text.color = Color.black;
+		var iconRotation = Quaternion.AngleAxis(180,Vector3.up);
+		statFrameObject = GameObject.Instantiate(Resources.Load("SiteStatFrameObject") as GameObject,transform.position + Vector3(0,1,0),iconRotation);
+		statFrame = statFrameObject.GetComponent(ConflictSiteFrame) as ConflictSiteFrame;
+		
+		// set icon
+		UpdateFrames();
+		statFrame.SetTexture(statFrameImage);
 	}
 	
 	// MARK: Conflict Methods
@@ -202,5 +202,16 @@ class ConflictSite extends MonoBehaviour {
 			// if this site was controlled by someone but now isn't, increase number of uncaptured sites
 			uncapturedSitesRemaining++;
 		}
+		
+		UpdateFrames();
 	}	
+	
+	function UpdateFrames() {
+		// update stat frame data
+		if (statFrame != null) {
+			statFrame.SetAttack(attack);
+			statFrame.SetDefense(defense);
+			statFrame.SetAllegiance(allegiance);
+		}
+	}
 }

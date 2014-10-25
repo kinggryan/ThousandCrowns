@@ -1,10 +1,7 @@
 ﻿#pragma strict
 
 class ConflictSiteTemple extends ConflictSite {
-	function ConflictSiteTemple() {
-		// call super constructor
-		super();
-		
+	function Start() {
 		// set stats and typename
 		typeName = "temple";
 		attack = 0;
@@ -13,5 +10,7 @@ class ConflictSiteTemple extends ConflictSite {
 		
 		defense = maximumDefense;
 		allegiance = maximumAllegiance;
+		
+		super.Start();
 	}
 }

@@ -2,7 +2,11 @@ fileFormatVersion: 2
 guid: 70ef9918c4a724b42b9070cb934c0ccc
 MonoImporter:
   serializedVersion: 2
-  defaultReferences: []
+  defaultReferences:
+  - playerManager: {instanceID: 0}
+  - statFrame: {instanceID: 0}
+  - statFrameImage: {fileID: 2800000, guid: d62d5a1e074504d288eae026ca176029, type: 3}
+  - statTextMeshObject: {instanceID: 0}
   executionOrder: 0
   icon: {instanceID: 0}
   userData: 

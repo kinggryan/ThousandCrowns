@@ -29,6 +29,8 @@ class ConflictBoardSpace extends ConflictSelectablePiece {
 		site = gameObject.GetComponent(ConflictSite);
 		if (site == null)	
 			site = gameObject.AddComponent(ConflictSite);
+			
+	//	site.UpdateFrames();
 	}
 	
 	function DrawLinesToConnectedSpaces() {
