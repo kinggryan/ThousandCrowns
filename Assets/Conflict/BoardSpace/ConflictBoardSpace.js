@@ -27,8 +27,6 @@ class ConflictBoardSpace extends ConflictSelectablePiece {
 		
 		// set site to blank site if there is no site already set
 		site = gameObject.GetComponent(ConflictSite);
-		if (site == null)	
-			site = gameObject.AddComponent(ConflictSite);
 			
 	//	site.UpdateFrames();
 	}
