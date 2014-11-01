@@ -24,7 +24,11 @@ class ConflictBoardSpace extends ConflictSelectablePiece {
 //		photonView.viewID = allocatedBoardSpacePhotonViewID++;
 		//Layout units
 		LayoutUnits();
-		site = gameObject.AddComponent(ConflictSite);
+		
+		// set site to blank site if there is no site already set
+		site = gameObject.GetComponent(ConflictSite);
+			
+	//	site.UpdateFrames();
 	}
 	
 	function DrawLinesToConnectedSpaces() {
@@ -33,8 +37,8 @@ class ConflictBoardSpace extends ConflictSelectablePiece {
 		if(lineRenderer == null) {
 			lineRenderer = gameObject.AddComponent(LineRenderer) as LineRenderer;
 			lineRenderer.material = Resources.Load("LineMaterial") as Material;
-			lineRenderer.SetColors(Color.yellow,Color.yellow);
-			lineRenderer.SetWidth(0.7,0.7);
+			lineRenderer.SetColors(Color.white,Color.white);
+			lineRenderer.SetWidth(0.7	,0.7);
 			lineRenderer.SetVertexCount(2 * connectedBoardSpaces.Count);
 			
 			// set each line
@@ -48,7 +52,7 @@ class ConflictBoardSpace extends ConflictSelectablePiece {
 	
 	function LayoutUnits() {
 		// Lay units out in a circle around this space
-		var unitLayoutDistance = 3;
+		var unitLayoutDistance = 5;
 		var layoutDirection = Vector3.forward * unitLayoutDistance;
 		var layoutRotation = Quaternion.AngleAxis(360.0 / units.Count,Vector3.up);
 		
@@ -60,6 +64,11 @@ class ConflictBoardSpace extends ConflictSelectablePiece {
 			// rotate direction of placement
 			layoutDirection = layoutRotation*layoutDirection;
 		}
+	}
+	
+	function SetDefaultColor(color: Color) {
+		defaultColor = color;
+		renderer.material.color = defaultColor;
 	}
 }
 	

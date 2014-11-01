@@ -4,10 +4,11 @@
 	
 	*****/
 	
-class ConflictSite extends ConflictSelectablePiece {
+class ConflictSite extends MonoBehaviour {
 	// Properties
 	
 	// Conflict Properties
+	var typeName: String = "site";
 	var allegiance: int = 0;		// allegiance of the site
 	var attack: int		= 0; 		// attack value that the site uses to defend itself
 	var defense: int    = 3;		// current defense of the site
@@ -17,6 +18,7 @@ class ConflictSite extends ConflictSelectablePiece {
 
 	var controllingPlayer: PhotonPlayer = null;		// controlling player of this site
 	var playerManager: ConflictPlayerManager = null;
+	var statFrame: ConflictSiteFrame = null;
 	
 	static var uncapturedSitesRemaining: int = 0;		// tracks how many uncaptured sites remain, for determining game end.
 
@@ -32,7 +34,6 @@ class ConflictSite extends ConflictSelectablePiece {
 	function ConflictSite() {
 		// increment number of uncaptured sites, as all sites start neutral
 		uncapturedSitesRemaining++;
-		statFrameImage = Resources.Load("Siteframe");
 		
 		// set influence and attack arrays to 0
 		for(var i = 0 ; i < 5 ; i++) {
@@ -45,16 +46,17 @@ class ConflictSite extends ConflictSelectablePiece {
 		playerManager = GameObject.FindObjectOfType(ConflictPlayerManager);
 		
 		// Add text component
-		var verticalRotation = Quaternion.AngleAxis(90,Vector3.right);
-		statTextMeshObject = GameObject.Instantiate(Resources.Load("SiteStatFrameObject") as GameObject,transform.position + Vector3(0,1,0),verticalRotation);
-		var text : TextMesh = statTextMeshObject.GetComponent(TextMesh) as TextMesh;
-		text.text = "Site";
-		text.anchor = TextAnchor.MiddleCenter;
-		text.alignment = TextAlignment.Center;
-		text.color = Color.black;
+		var iconRotation = Quaternion.AngleAxis(180,Vector3.up);
+		statFrameObject = GameObject.Instantiate(Resources.Load("SiteStatFrameObject") as GameObject,transform.position + Vector3(0,.15,0),iconRotation);
+		statFrame = statFrameObject.GetComponent(ConflictSiteFrame) as ConflictSiteFrame;
+		statFrameObject.transform.parent = transform.parent;
+		
+		// set icon
+		UpdateFrames();
+		statFrame.SetTexture(statFrameImage);
 	}
 	
-	// Conflict Methods
+	// MARK: Conflict Methods
 	function InfluencedByPlayer(influenceAmount: int, influencingPlayer: PhotonPlayer) {
 		// Find this player's player number
 		var playerNumber = playerManager.playerList.IndexOf(influencingPlayer);
@@ -105,13 +107,16 @@ class ConflictSite extends ConflictSelectablePiece {
 				
 		// if highest influence value is greater than the current allegiance, give it to a player chosen at random from highest influence player list
 		if (highestInfluenceValue - defensiveInfluenceValue > 0 && highestInfluenceValue - defensiveInfluenceValue > allegiance) {
-			Debug.Log("setting allegiance to " + (highestInfluenceValue-allegiance));
-			// TODO choose player at random on master client and give site to them. For now, just choose the first
 			allegiance = highestInfluenceValue - (allegiance + defensiveInfluenceValue);
-			var newControllingPlayerIndex = highestInfluencePlayerIndexList[0];
+			
+			// resolve ties by picking a random number
+			var randomIndex = playerManager.DequeueRandomNumber() % highestInfluencePlayerIndexList.Count;
+			var newControllingPlayerIndex = highestInfluencePlayerIndexList[randomIndex];
 			controllingPlayer = playerManager.playerList[newControllingPlayerIndex];
-			defaultColor = playerManager.playerColorList[newControllingPlayerIndex];
-			renderer.material.color = defaultColor;
+			
+			// change color
+			var boardSpace = GetComponent(ConflictBoardSpace) as ConflictBoardSpace;
+			boardSpace.SetDefaultColor(playerManager.playerColorList[newControllingPlayerIndex]);
 		}
 		else if (highestInfluenceValue - defensiveInfluenceValue > 0 && highestInfluenceValue - defensiveInfluenceValue < allegiance) {
 			// the controlling player maintains control but loses some allegiance
@@ -121,8 +126,10 @@ class ConflictSite extends ConflictSelectablePiece {
 			// the site becomes neutral
 			allegiance = 0;
 			controllingPlayer = null;
-			defaultColor = Color.gray;
-			renderer.material.color = defaultColor;
+			
+			// change color
+			var boardSpace2 = GetComponent(ConflictBoardSpace) as ConflictBoardSpace;
+			boardSpace2.SetDefaultColor(Color.gray);
 		}
 		else {	// highestInfluenceValue is either 0 or less than or equal to defensive influence value
 			// add defensive influence to allegiance, since defender won OR no one did anything
@@ -162,7 +169,6 @@ class ConflictSite extends ConflictSelectablePiece {
 		if(maximumDamageDealt == 0) {
 			// if no on attacked this, heal it and return
 			defense = Mathf.Min(maximumDefense,defense + 1);
-			Debug.Log("heal");
 			return;
 		}
 		
@@ -171,12 +177,13 @@ class ConflictSite extends ConflictSelectablePiece {
 		
 		// if defense has been rendered to 0, give control of this site to a random max damage dealing player
 		if (defense == 0) {
-			Debug.Log("attack");
-			// TODO choose player at random on master client and give site to them. For now, just choose the first
-			var newControllingPlayerIndex = maxDamagePlayerIndexList[0];
+			var randomIndex = playerManager.DequeueRandomNumber() % maxDamagePlayerIndexList.Count;
+			var newControllingPlayerIndex = maxDamagePlayerIndexList[randomIndex];
 			controllingPlayer = playerManager.playerList[newControllingPlayerIndex];
-			defaultColor = playerManager.playerColorList[newControllingPlayerIndex];
-			renderer.material.color = defaultColor;
+			
+			// change color
+			var boardSpace = GetComponent(ConflictBoardSpace) as ConflictBoardSpace;
+			boardSpace.SetDefaultColor(playerManager.playerColorList[newControllingPlayerIndex]);
 		}
 	}
 	
@@ -196,5 +203,16 @@ class ConflictSite extends ConflictSelectablePiece {
 			// if this site was controlled by someone but now isn't, increase number of uncaptured sites
 			uncapturedSitesRemaining++;
 		}
+		
+		UpdateFrames();
 	}	
+	
+	function UpdateFrames() {
+		// update stat frame data
+		if (statFrame != null) {
+			statFrame.SetAttack(attack);
+			statFrame.SetDefense(defense);
+			statFrame.SetAllegiance(allegiance);
+		}
+	}
 }

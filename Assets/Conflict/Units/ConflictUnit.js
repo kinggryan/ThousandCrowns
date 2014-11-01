@@ -12,12 +12,14 @@ class ConflictUnit extends ConflictSelectablePiece {
 	var controllingPlayer: PhotonPlayer = null;
 	var controllingPlayerNumber: int = -1;			// TODO this property should ultimately be not needed - we're using it now so we can												
 													//		can hardcode ownership for these early versions
+	// Character properties
+	var characterName: String = "Name";
 	
 	// Stats
-	private var attack: int = 1;
-	private var influence: int = 1;
+	public var attack: int = 1;
+	public var influence: int = 1;
 	private var health:		int  = 6;
-	private var maximumHealth: int = 6;
+	public var maximumHealth: int = 6;
 	
 	// game properties
 	var used: boolean = true;
@@ -29,12 +31,28 @@ class ConflictUnit extends ConflictSelectablePiece {
 	var abilityButtonPrefab: GameObject;
 	var abilityButtonObjects: GameObject[] = null;
 	var enemyAbilityPrefab: GameObject;
-	private var abilities: UnitAbility[] = [UnitAbilityMove(),UnitAbilityAttack(attack),UnitAbilityInfluence(influence)];
+	public var abilities: UnitAbility[] = [UnitAbilityMove(),UnitAbilityAttack(attack),UnitAbilityInfluence(influence)];
+	var testAbility: UnitAbility;
 	var numberOfAbilities: int = 3;
 	var knownAbilityDescriptions: String[];
 	
+	// Stat Display properties
+	var attackStatMesh: TextMesh	=	null;
+	var influenceStatMesh: TextMesh	=	null;
+	var healthStatMesh: TextMesh	=	null;
+	
+	var unitIcon: Texture = null;
+	
 	// Methods
 	function Start() {
+		// if there's a characterRoster object, initialize it
+		var characterRoster = GetComponent(CharacterRoster) as CharacterRoster;
+		if (characterRoster != null) {
+			characterRoster.Initialize();
+			health = maximumHealth;
+			renderer.material.mainTexture = unitIcon;
+		}
+	
 		abilityButtonPrefab = Resources.Load("ConflictUnitAbilityButtonObject") as GameObject;
 		enemyAbilityPrefab = Resources.Load("ConflictUnitEnemyAbilityObject") as GameObject;
 		
@@ -57,41 +75,54 @@ class ConflictUnit extends ConflictSelectablePiece {
 		
 		// initialize previous spcae to this space
 		previousBoardSpace = boardSpace;
+		
+		// set text mesh stuff
+		attackStatMesh.text = attack.ToString();
+		influenceStatMesh.text = influence.ToString();
+		healthStatMesh.text = health.ToString();
 	}
 	
 	// MARK: override methods
 	function Select() {
+		// find character frame
+		var characterFrame = Camera.main.GetComponentInChildren(ConflictCharacterFrame) as ConflictCharacterFrame;
+	
 		// if controlled by local player, display abils 
 		if(controllingPlayer == PhotonNetwork.player && !used) {
-			// make buttons
+			// make buttonsset
 			abilityButtonObjects = new GameObject[numberOfAbilities];
 			var currentAbilityIndex = 0;
-			var offset = Vector3(0,0,0);
+			var offset = Vector3(0,0,3.2);
 		
 			for(var currentAbility in abilities) {
-				abilityButtonObjects[currentAbilityIndex] = GameObject.Instantiate(abilityButtonPrefab,transform.position+Vector3(8,3,0)+offset,Quaternion.identity);
+				abilityButtonObjects[currentAbilityIndex] = GameObject.Instantiate(abilityButtonPrefab,characterFrame.transform.position+Vector3(1.75,1,0)+offset,Quaternion.identity);
 				var abilityButtonData = abilityButtonObjects[currentAbilityIndex].GetComponent(ConflictUnitAbilityButton) as ConflictUnitAbilityButton;
 				abilityButtonData.unit = this;
 				abilityButtonData.ability = abilities[currentAbilityIndex];
 				
 				currentAbilityIndex++;
-				offset.z += 1.5;
+				offset.z -= 2;
 			}
+			
+			// set name
+			characterFrame.SetNameAndStats(characterName,attack,influence,health);
 		}
 		else if(controllingPlayer != PhotonNetwork.player) {
 			// show known abilities of opponents' units
 			abilityButtonObjects = new GameObject[numberOfAbilities];
 			var currentKnownAbilityIndex = 0;
-			var currentOffset = Vector3(0,0,0);
+			var currentOffset = Vector3(0,0,3.2);
 		
 			for(var currentAbility in knownAbilityDescriptions) {
-				abilityButtonObjects[currentKnownAbilityIndex] = GameObject.Instantiate(enemyAbilityPrefab,transform.position+Vector3(8,3,0)+currentOffset,Quaternion.identity);
+				abilityButtonObjects[currentKnownAbilityIndex] = GameObject.Instantiate(enemyAbilityPrefab,characterFrame.transform.position+Vector3(1.75,1,0)+currentOffset,Quaternion.identity);
 				var textMesh = abilityButtonObjects[currentKnownAbilityIndex].GetComponentInChildren(TextMesh) as TextMesh;
 				textMesh.text = currentAbility;
 				
 				currentKnownAbilityIndex++;
-				currentOffset.z += 1.5;
+				currentOffset.z -= 2;
 			}
+			
+			characterFrame.SetNameAndStats(characterName,attack,influence,health);
 		}
 		
 		super.Select();
@@ -101,8 +132,11 @@ class ConflictUnit extends ConflictSelectablePiece {
 		// remove buttons
 		for(var button in abilityButtonObjects) {
 			GameObject.Destroy(button,0);
-			Debug.Log("Destroying");
 		}
+		
+		// set name to empty
+		var characterFrame = Camera.main.GetComponentInChildren(ConflictCharacterFrame) as ConflictCharacterFrame;
+		characterFrame.DeselectUnit();
 		
 		super.Deselect();
 	}
@@ -144,7 +178,6 @@ class ConflictUnit extends ConflictSelectablePiece {
 			return;
 		}
 		// use ability
-		Debug.Log("Using abil: " +abilities[index].helpText);
 		Debug.Log(abilities[index]);
 		abilities[index].Activate(targetViewID);
 		
@@ -173,7 +206,28 @@ class ConflictUnit extends ConflictSelectablePiece {
 			// TODO this needs to deal with death
 			ConflictLog.LogMessage("DEAD!");
 		}
+		
+		healthStatMesh.text = health.ToString();
+		
+		if (selectedObject == this) {
+			var characterFrame = Camera.main.GetComponentInChildren(ConflictCharacterFrame) as ConflictCharacterFrame;
+			characterFrame.SetNameAndStats(characterName,attack,influence,health);
+		}
 	}
+	
+	function Heal(healAmount: int) {
+		health += healAmount;
+		
+		if (health > maximumHealth)
+			health = maximumHealth;
+			
+		healthStatMesh.text = health.ToString();
+		
+		if (selectedObject == this) {
+			var characterFrame = Camera.main.GetComponentInChildren(ConflictCharacterFrame) as ConflictCharacterFrame;
+			characterFrame.SetNameAndStats(characterName,attack,influence,health);
+		}
+	} 
 	
 	function QueueDamage(damage: int) {
 		queuedDamage += damage;

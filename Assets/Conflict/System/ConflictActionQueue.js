@@ -58,7 +58,6 @@ class ConflictActionQueue extends Photon.MonoBehaviour {
 		for(var currentInfo in abilityQueue) {
 			// go through queue and use all abilities
 			currentInfo.unit.UseAbilityGivenIndex(currentInfo.abilityIndex,currentInfo.targetViewID);
-			Debug.Log("use abil with index :" +currentInfo.abilityIndex);
 		}
 		
 		// purge queue

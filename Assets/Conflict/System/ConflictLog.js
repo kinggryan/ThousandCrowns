@@ -41,6 +41,7 @@ class ConflictLog extends MonoBehaviour {
 	function OnGUI() {
 		// draw all messages
 		var messageFrame = Rect(25,125,250,25);
+		GUI.contentColor = Color.black;
 		for(var message in messages) {
 			GUI.Label(messageFrame,message);
 			// move message frame
