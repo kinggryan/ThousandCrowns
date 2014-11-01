@@ -20,7 +20,7 @@ class ConflictTurnController extends Photon.MonoBehaviour {
 	
 	function OnGUI() {	
 		// Display "Done" Button
-		var buttonPosition = Rect(750,15,50,50);
+		var buttonPosition = Rect(Screen.width - 100,15,50,50);
 		if(!turnDone) {
 			if(GUI.Button(buttonPosition,"Done")) {
 				turnDone = true;

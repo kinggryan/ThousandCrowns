@@ -49,6 +49,7 @@ class ConflictSite extends MonoBehaviour {
 		var iconRotation = Quaternion.AngleAxis(180,Vector3.up);
 		statFrameObject = GameObject.Instantiate(Resources.Load("SiteStatFrameObject") as GameObject,transform.position + Vector3(0,.15,0),iconRotation);
 		statFrame = statFrameObject.GetComponent(ConflictSiteFrame) as ConflictSiteFrame;
+		statFrameObject.transform.parent = transform.parent;
 		
 		// set icon
 		UpdateFrames();

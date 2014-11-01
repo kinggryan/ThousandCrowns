@@ -1,7 +1,7 @@
 ﻿#pragma strict
 
 class ConflictSiteCastle extends ConflictSite {
-	function ConflictSiteCastle() {
+	function Start() {
 		// set stats and typename
 		typeName = "castle";
 		attack = 2;

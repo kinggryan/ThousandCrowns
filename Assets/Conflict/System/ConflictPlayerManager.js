@@ -82,8 +82,11 @@ class ConflictPlayerManager extends Photon.MonoBehaviour {
 				unit.controllingPlayer = playerList[unit.controllingPlayerNumber];
 				
 				// set unit color
-				unit.defaultColor = playerColorList[unit.controllingPlayerNumber];
-				unit.renderer.material.color = unit.defaultColor;
+			//	unit.defaultColor = playerColorList[unit.controllingPlayerNumber];
+			//	unit.renderer.material.color = unit.defaultColor;
+				var unitBorders = unit.gameObject.GetComponentsInChildren(ConflictUnitBorder);
+				for (var border in unitBorders)
+					border.renderer.material.color = playerColorList[unit.controllingPlayerNumber];
 			}
 			
 			// set units to unused
