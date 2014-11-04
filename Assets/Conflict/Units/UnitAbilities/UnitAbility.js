@@ -55,6 +55,12 @@ class UnitAbilityMove extends UnitAbility {
 		helpText = "Move 1";
 	}
 	
+	function UnitAbilityMove(mv: int) {
+		requiresTargets = true;
+		moveValue = mv;
+		helpText = "Move "+moveValue;
+	}
+	
 	// MARK: override methods
 	function Activate(targetViewID: int) {
 		// PARAM 0: viewID of the target space
@@ -66,27 +72,28 @@ class UnitAbilityMove extends UnitAbility {
 	}
 	
 	function SetAndCheckTarget(target: ConflictSelectablePiece) {
+		if (!(target as ConflictBoardSpace)) {
+			return false;
+		}
+	
 		// given a target space, is it within range of the current space?
-		for(var adjacentSpace in unit.boardSpace.connectedBoardSpaces) {
-			if(target == adjacentSpace) {
-				// if we're on an enemy space, we can only move to our previous space
-				if(unit.boardSpace.site != null && unit.boardSpace.site.controllingPlayer != null) {
-					var diplomacyManager = GameObject.FindObjectOfType(ConflictDiplomacyManager) as ConflictDiplomacyManager;
-					var playerManager = GameObject.FindObjectOfType(ConflictPlayerManager) as ConflictPlayerManager;
-					if(diplomacyManager.GetRelationship(PhotonNetwork.player,unit.boardSpace.site.controllingPlayer) == PlayerRelationship.enemy && target != unit.previousBoardSpace) {
-						ConflictLog.LogMessage("Can only retreat from enemy space");
-						return false;
-					}
-				}
-				
-				// this is a valid target
-				targetSpace = target as ConflictBoardSpace;
-				return true;
+		if(CheckSpaceWithinRangeOfSpace(unit.boardSpace,target as ConflictBoardSpace,moveValue) == false) {
+			return false;
+		}
+			
+		// if we're on an enemy space, we can only move to our previous space
+		if(unit.boardSpace.site != null && unit.boardSpace.site.controllingPlayer != null) {
+			var diplomacyManager = GameObject.FindObjectOfType(ConflictDiplomacyManager) as ConflictDiplomacyManager;
+			var playerManager = GameObject.FindObjectOfType(ConflictPlayerManager) as ConflictPlayerManager;
+			if(diplomacyManager.GetRelationship(PhotonNetwork.player,unit.boardSpace.site.controllingPlayer) == PlayerRelationship.enemy && target != unit.previousBoardSpace) {
+				ConflictLog.LogMessage("Can only retreat from enemy space");
+				return false;
 			}
 		}
-		
-		// if it isn't return false
-		return false;
+				
+		// this is a valid target
+		targetSpace = target as ConflictBoardSpace;
+		return true;
 	}
 	
 	function AddToAbilityQueue() {
@@ -101,6 +108,27 @@ class UnitAbilityMove extends UnitAbility {
 		
 		// tell unit that it's been used
 		unit.used = true;
+	}
+	
+	function CheckSpaceWithinRangeOfSpace(startSpace: ConflictBoardSpace, targetSpace: ConflictBoardSpace, range: int) : boolean {
+		// we found it
+		if (startSpace == targetSpace) {
+			return true;
+		}
+		
+		// if range is 0 and we didn't just return true, we return false
+		if (range == 0) {
+			return false;
+		}
+		
+		for(var connectedSpace in startSpace.connectedBoardSpaces) {
+			if (CheckSpaceWithinRangeOfSpace(connectedSpace,targetSpace,range-1)) {
+				return true;
+			}
+		}
+		
+		// if we reached here, return false
+		return false;
 	}
 }
 
@@ -439,6 +467,7 @@ class UnitAbilityAttackWithBonus extends UnitAbility {
 class UnitAbilityHeal extends UnitAbility {
 	// Properties
 	var healValue: int = 1;	
+	var savedTarget: ConflictUnit = null;
 
 	// Methods
 	// MARK: Constructors
@@ -481,9 +510,214 @@ class UnitAbilityHeal extends UnitAbility {
 		
 		if(targetUnit != null &&
 		   targetUnit.boardSpace == unit.boardSpace) {
+		   savedTarget = targetUnit;
 			return true;
 		}
 		return false;
+	}
+	
+	function AddToAbilityQueue() {
+		var qInfo = QueueAbilityInfo();
+		qInfo.unit = unit;
+		qInfo.abilityIndex = abilityIndex;
+		qInfo.targetViewID = savedTarget.photonView.viewID;
+		
+		// enqueue it up!
+		var actionQueue = GameObject.FindObjectOfType(ConflictActionQueue) as ConflictActionQueue;
+		actionQueue.QueueAbilityLocallyAndRemotely(qInfo);
+		
+		// tell unit that it's been used
+		unit.used = true;
+	}
+}
+
+/*****
+
+	Influence +x in (sitetypes) and heal for Y Ability Class
+	
+	*****/
+	
+class UnitAbilityInfluenceAndHealInSite extends UnitAbility {
+	// Properties
+	var influenceValue: int = 1;
+	var bonusValue: int = 1;
+	var healValue: int = 1;
+	var bonusTypes: String[] = [];	
+
+	// Methods
+	// MARK: Constructors
+	// Default gives influence 1
+	function UnitAbilityInfluenceAndHealInSite() {
+		requiresTargets = false;
+		helpText = "Influence " + influenceValue + "(+" + bonusValue + ") in ";
+		for (var type in bonusTypes) {
+			helpText += type + " ";
+		}
+		helpText += ".";
+	}
+	
+	function UnitAbilityInfluenceAndHealInSite(initialInfluence: int,bv: int,hv: int, types: String[]) {
+		influenceValue = initialInfluence;
+		bonusValue = bv;
+		healValue = hv;
+		bonusTypes = types;
+		requiresTargets = false;
+		helpText = "Influence " + influenceValue + "(+" + bonusValue + " and heal for " + healValue + " in ";
+		var typeCount = 0;
+		for (var type in bonusTypes) {
+			helpText += type;
+			if (++typeCount < bonusTypes.Length) {
+				helpText += " or ";
+			}
+		}
+		helpText += ")";
+	}
+	
+	// MARK: override methods
+	function Activate(targetViewID: int) {
+		// get this unit's spaces
+		var targetSpace = unit.boardSpace;
+		
+		if(targetSpace.site != null) {
+			var bonusInfluence: int = 0;
+			// check adjacent sites for a temple you control
+			for(var connectedBoardSpace in targetSpace.connectedBoardSpaces) {
+				if(connectedBoardSpace.site != null && connectedBoardSpace.site.typeName == "temple" && connectedBoardSpace.site.controllingPlayer == unit.controllingPlayer) {
+					// add bonus influence
+					bonusInfluence = 1;
+				}
+			}
+			
+			// if this site is one of hte given types
+			for(var type in bonusTypes) {
+				if (targetSpace.site != null && targetSpace.site.typeName == type) {
+					bonusInfluence += bonusValue;
+					// heal site damage
+					targetSpace.site.OverhealDamage(healValue);
+				}
+			}
+			
+			// influence this space
+			targetSpace.site.InfluencedByPlayer(influenceValue + bonusInfluence,unit.controllingPlayer);
+		}
+	}
+	
+	function SetAndCheckTarget(target: ConflictSelectablePiece) {
+		// if this unit's site is controlled by an ally, return false and put a message in the log stating why
+		var diplomacyManager = GameObject.FindObjectOfType(ConflictDiplomacyManager) as ConflictDiplomacyManager;
+		var playerManager = GameObject.FindObjectOfType(ConflictPlayerManager) as ConflictPlayerManager;
+		if(unit.boardSpace.site.controllingPlayer != null && 
+		unit.boardSpace.site.controllingPlayer != PhotonNetwork.player &&
+		diplomacyManager.GetRelationship(PhotonNetwork.player,unit.boardSpace.site.controllingPlayer) != PlayerRelationship.enemy &&
+		diplomacyManager.relationshipTransitionStates[playerManager.playerList.IndexOf(unit.boardSpace.site.controllingPlayer)] != PlayerRelationshipTransitionState.enemyDeclared) {
+			ConflictLog.LogMessage("Declare this player an enemy first!");
+			return false;
+		}
+		return true;
+	}
+	
+	function AddToAbilityQueue() {
+		var qInfo = QueueAbilityInfo();
+		qInfo.unit = unit;
+		qInfo.abilityIndex = abilityIndex;
+		qInfo.targetViewID = -1;
+		
+		// enqueue it up!
+		var actionQueue = GameObject.FindObjectOfType(ConflictActionQueue) as ConflictActionQueue;
+		actionQueue.QueueAbilityLocallyAndRemotely(qInfo);
+		
+		// tell unit that it's been used
+		unit.used = true;
+	}
+}
+
+/*****
+
+	Influence +x in (sitetypes) and give +y attack
+	
+	*****/
+	
+class UnitAbilityInfluenceAndAttackBonusInSite extends UnitAbility {
+	// Properties
+	var influenceValue: int = 1;
+	var bonusValue: int = 1;
+	var bonusAttackValue: int = 1;
+	var maximumBonusAttackValue: int = 2;
+	var bonusTypes: String[] = [];	
+
+	// Methods
+	// MARK: Constructors
+	// Default gives influence 1
+	function UnitAbilityInfluenceAndHealInSite() {
+		requiresTargets = false;
+		helpText = "Influence " + influenceValue + "(+" + bonusValue + ") in ";
+		for (var type in bonusTypes) {
+			helpText += type + " ";
+		}
+		helpText += ".";
+	}
+	
+	function UnitAbilityInfluenceAndAttackBonusInSite(initialInfluence: int,bv: int,av: int,mav:int, types: String[]) {
+		influenceValue = initialInfluence;
+		bonusValue = bv;
+		bonusAttackValue = av;
+		maximumBonusAttackValue = mav;
+		bonusTypes = types;
+		requiresTargets = false;
+		helpText = "Influence " + influenceValue + "(+" + bonusValue + " and give site " + bonusAttackValue + " attack, up to " +maximumBonusAttackValue+ " in ";
+		var typeCount = 0;
+		for (var type in bonusTypes) {
+			helpText += type;
+			if (++typeCount < bonusTypes.Length) {
+				helpText += " or ";
+			}
+		}
+		helpText += ")";
+	}
+	
+	// MARK: override methods
+	function Activate(targetViewID: int) {
+		// get this unit's spaces
+		var targetSpace = unit.boardSpace;
+		
+		if(targetSpace.site != null) {
+			var bonusInfluence: int = 0;
+			// check adjacent sites for a temple you control
+			for(var connectedBoardSpace in targetSpace.connectedBoardSpaces) {
+				if(connectedBoardSpace.site != null && connectedBoardSpace.site.typeName == "temple" && connectedBoardSpace.site.controllingPlayer == unit.controllingPlayer) {
+					// add bonus influence
+					bonusInfluence = 1;
+				}
+			}
+			
+			// if this site is one of hte given types
+			for(var type in bonusTypes) {
+				if (targetSpace.site != null && targetSpace.site.typeName == type) {
+					// heal site damage
+					targetSpace.site.attack += bonusAttackValue;
+					
+					if (targetSpace.site.attack > maximumBonusAttackValue) 
+						targetSpace.site.attack = maximumBonusAttackValue;
+				}
+			}
+			
+			// influence this space
+			targetSpace.site.InfluencedByPlayer(influenceValue + bonusInfluence,unit.controllingPlayer);
+		}
+	}
+	
+	function SetAndCheckTarget(target: ConflictSelectablePiece) {
+		// if this unit's site is controlled by an ally, return false and put a message in the log stating why
+		var diplomacyManager = GameObject.FindObjectOfType(ConflictDiplomacyManager) as ConflictDiplomacyManager;
+		var playerManager = GameObject.FindObjectOfType(ConflictPlayerManager) as ConflictPlayerManager;
+		if(unit.boardSpace.site.controllingPlayer != null && 
+		unit.boardSpace.site.controllingPlayer != PhotonNetwork.player &&
+		diplomacyManager.GetRelationship(PhotonNetwork.player,unit.boardSpace.site.controllingPlayer) != PlayerRelationship.enemy &&
+		diplomacyManager.relationshipTransitionStates[playerManager.playerList.IndexOf(unit.boardSpace.site.controllingPlayer)] != PlayerRelationshipTransitionState.enemyDeclared) {
+			ConflictLog.LogMessage("Declare this player an enemy first!");
+			return false;
+		}
+		return true;
 	}
 	
 	function AddToAbilityQueue() {

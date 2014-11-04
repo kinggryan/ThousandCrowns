@@ -3,7 +3,7 @@
 // This class should be attached to a unit and a number 0-14 should be assigned. The component will attach the correct unit
 //		to the unit object.
 
-enum CharacterName { Filonius,Thomas,Mary,Helena,Robin,Gretta,Brad,Andre,Jade };
+enum CharacterName { Filonius,Thomas,Mary,Helena,Robin,Gretta,Brad,Andre,Jade,Bob,Sarah,Karla,Trevor,Samuel };
 
 class CharacterRoster extends MonoBehaviour {
 	// Properties
@@ -103,6 +103,54 @@ class CharacterRoster extends MonoBehaviour {
 			unit.numberOfAbilities = 4;
 			unit.unitIcon = Resources.Load("priesticon",Texture);
 			break;
+			
+		case CharacterName.Bob:
+			unit.characterName = "Bob the Quarryman";
+			unit.attack = 0;
+			unit.influence = 1;
+			unit.maximumHealth = 8;
+			unit.abilities = [unit.abilities[0],unit.abilities[1],unit.abilities[2],UnitAbilityInfluenceAndHealInSite(unit.influence,1,1,["village"])];;
+			unit.numberOfAbilities = 4;
+			unit.unitIcon = Resources.Load("merchanticon",Texture);
+			break;
+			
+		case CharacterName.Sarah:
+			unit.characterName = "Sarah the Wallbuilder";
+			unit.attack = 0;
+			unit.influence = 1;
+			unit.maximumHealth = 7;
+			unit.abilities = [unit.abilities[0],unit.abilities[1],unit.abilities[2],UnitAbilityInfluenceAndHealInSite(unit.influence,1,1,["village"])];;
+			unit.numberOfAbilities = 4;
+			unit.unitIcon = Resources.Load("merchanticon",Texture);
+			break;
+			
+		case CharacterName.Karla:
+			unit.characterName = "Karla, High Priestess";
+			unit.attack = 0;
+			unit.influence = 1;
+			unit.maximumHealth = 6;
+			unit.abilities = [unit.abilities[0],unit.abilities[1],unit.abilities[2],UnitAbilityInfluenceAndHealInSite(unit.influence,1,1,["temple"])];;
+			unit.numberOfAbilities = 4;
+			unit.unitIcon = Resources.Load("priesticon",Texture);
+			break;
+			
+		case CharacterName.Trevor:
+			unit.characterName = "Trevor, Militia Trainer";
+			unit.attack = 1;
+			unit.influence = 0;
+			unit.maximumHealth = 8;
+			unit.abilities = [unit.abilities[0],unit.abilities[1],unit.abilities[2],UnitAbilityInfluenceAndAttackBonusInSite(unit.influence,1,1,2,["village"])];;
+			unit.numberOfAbilities = 4;
+			unit.unitIcon = Resources.Load("knighticon",Texture);
+			break;
+		
+		case CharacterName.Samuel:
+			unit.characterName = "Samuel the Hasty";
+			unit.attack = 1;
+			unit.influence = 1;
+			unit.maximumHealth = 8;
+			unit.abilities = [UnitAbilityMove(2),unit.abilities[1],unit.abilities[2]];
+			unit.unitIcon = Resources.Load("knighticon",Texture);
 			
 		default:	break;
 		}
