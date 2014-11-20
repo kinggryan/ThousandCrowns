@@ -531,6 +531,9 @@ public class ErrorCode
     /// <summary>(32767) Authentication failed. Possible cause: AppId is unknown to Photon (in cloud service).</summary>
     public const int InvalidAuthentication = 0x7FFF;
 
+    /// <summary>(32753) The Authentication ticket expired. Usually, this is refreshed behind the scenes. Connect (and authorize) again.</summary>
+    public const int AuthenticationTicketExpired = 0x7FF1;
+
     /// <summary>(32766) GameId (name) already in use (can't create another). Change name.</summary>
     public const int GameIdAlreadyExists = 0x7FFF - 1;
 

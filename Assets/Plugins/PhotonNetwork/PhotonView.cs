@@ -174,7 +174,7 @@ public class PhotonView : Photon.MonoBehaviour
         }
     }
 
-    private bool didAwake;
+    protected internal bool didAwake;
 
     protected internal bool destroyedByPhotonNetworkOrQuit;
 

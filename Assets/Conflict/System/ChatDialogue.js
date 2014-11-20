@@ -1,9 +1,5 @@
 ﻿#pragma strict
-
-function Start () {
-
-}
-
-function Update () {
-
+class ChatDialogue extends Photon.MonoBehaviour
+{
+	
 }
