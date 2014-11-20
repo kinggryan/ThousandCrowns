@@ -20,7 +20,7 @@ class ConflictPlayerManager extends Photon.MonoBehaviour {
 		// If we're on the master client, assign player numbers and tell others to set unit ownership
 		if(PhotonNetwork.isMasterClient) {
 			AssignPlayerNumbers();
-			photonView.RPC("SetPlayerNumbersFromMasterClient",PhotonTargets.Others,playerList[0],playerList[1]);
+			photonView.RPC("SetPlayerNumbersFromMasterClient",PhotonTargets.Others,playerList[0],playerList[1],playerList[2],playerList[3],playerList[4]);
 			
 			// assign player units
 			photonView.RPC("SetUnitControllers",PhotonTargets.All);
@@ -63,9 +63,12 @@ class ConflictPlayerManager extends Photon.MonoBehaviour {
 	
 	// MARK: RPCs
 	@RPC
-	function SetPlayerNumbersFromMasterClient(playerOne: PhotonPlayer, playerTwo: PhotonPlayer) {	// TODO this method needs to take up to the maximum # of players as a parameter - 5 by the first playtest
+	function SetPlayerNumbersFromMasterClient(playerOne: PhotonPlayer, playerTwo: PhotonPlayer, p3: PhotonPlayer, p4: PhotonPlayer, p5: PhotonPlayer) {	// TODO this method needs to take up to the maximum # of players as a parameter - 5 by the first playtest
 		playerList.Add(playerOne);
 		playerList.Add(playerTwo);
+		playerList.Add(p3);
+		playerList.Add(p4);
+		playerList.Add(p5);
 		
 		// Now that player numbers are set, let's find the diplomacy manager and set relationships
 		var diplomacyManager = GameObject.FindObjectOfType(ConflictDiplomacyManager) as ConflictDiplomacyManager;
