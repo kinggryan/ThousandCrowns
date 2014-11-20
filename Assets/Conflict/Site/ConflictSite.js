@@ -145,6 +145,18 @@ class ConflictSite extends MonoBehaviour {
 		}
 	}
 	
+	function HealDamage(healValue: int) {
+		defense+= healValue;
+		
+		if (defense > maximumDefense) {
+			defense = maximumDefense;
+		}
+	}
+	
+	function OverhealDamage(healValue: int) {
+		defense+= healValue;
+	}
+	
 	function ResolveTurnAttacks() {
 		// iterate through damage and set maximum damage
 		var maximumDamageDealt: int = 0;

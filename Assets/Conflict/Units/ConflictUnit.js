@@ -153,16 +153,17 @@ class ConflictUnit extends ConflictSelectablePiece {
 		
 		// If one of this unit's abilities was clicked, then allow it to be selected
 		for(var currentAbility in abilityButtonObjects) {
+			if (currentAbility != null) {
+				// get ConflictUnitAbilityButton from ability button object
+				var abilityButtonData = currentAbility.GetComponent(ConflictUnitAbilityButton) as ConflictUnitAbilityButton;
 			
-			// get ConflictUnitAbilityButton from ability button object
-			var abilityButtonData = currentAbility.GetComponent(ConflictUnitAbilityButton) as ConflictUnitAbilityButton;
-			
-			if(clickedPiece == abilityButtonData) {
-				// else, we want to select the clicked piece, not deselect this piece, and return false
-				clickedPiece.Select();
-				selectedObject = clickedPiece;
+				if(clickedPiece == abilityButtonData) {
+					// else, we want to select the clicked piece, not deselect this piece, and return false
+					clickedPiece.Select();
+					selectedObject = clickedPiece;
 		
-				return false;
+					return false;
+				}
 			}
 		}
 		

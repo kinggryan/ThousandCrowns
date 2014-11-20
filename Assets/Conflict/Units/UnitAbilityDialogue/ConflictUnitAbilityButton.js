@@ -16,7 +16,12 @@ class ConflictUnitAbilityButton extends ConflictSelectablePiece {
 	// MARK: Override methods
 	function Start() {
 		var text = GetComponentInChildren(TextMesh) as TextMesh;
-		text.text = ability.helpText;	
+		text.text = ability.helpText;
+		
+		// if the unit is used, make sure you're grayed out	
+	//	if(unit.used) {
+	//		renderer.material.color = Color.gray;
+	//	}
 	}
 	
 	function Deselect() {
