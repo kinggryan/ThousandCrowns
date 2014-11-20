@@ -11,11 +11,13 @@ class ConflictTurnController extends Photon.MonoBehaviour {
 	var numberOfDonePlayers: int = 0;
 	var actionQueue: ConflictActionQueue = null;
 	var turnDone: boolean = false;
+	var turnTimeRemaining: float = 0.0;
 	
 	// Methods
 	function Start() {
 		// Find Other controllers
 		actionQueue = GetComponent(ConflictActionQueue) as ConflictActionQueue;
+		turnTimeRemaining = 60 * 2;		// two minutes
 	}
 	
 	function OnGUI() {	
@@ -26,6 +28,9 @@ class ConflictTurnController extends Photon.MonoBehaviour {
 				turnDone = true;
 				photonView.RPC("PlayerTurnDone",PhotonTargets.All);
 			}
+			// display turn timer
+			var timerPosition = Rect(Screen.width - 185,15,75,50);
+			GUI.Label(timerPosition,"Time:" +(turnTimeRemaining/60).ToString("F2"));
 		}
 	}
 	
@@ -58,6 +63,18 @@ class ConflictTurnController extends Photon.MonoBehaviour {
 		numberOfDonePlayers = 0;
 		
 		// TODO add end game method call here
+	}
+	
+	function Update() {
+		turnTimeRemaining -= Time.deltaTime;
+		if (turnTimeRemaining <= 0 && !turnDone) {
+			TurnTimerExpired();
+		}
+	}
+	
+	function TurnTimerExpired() {
+		turnDone = true;
+		photonView.RPC("PlayerTurnDone",PhotonTargets.All);
 	}
 	
 	// MARK: RPCs
