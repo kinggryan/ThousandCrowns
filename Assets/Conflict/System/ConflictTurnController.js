@@ -80,7 +80,14 @@ class ConflictTurnController extends Photon.MonoBehaviour {
 		//traverses all sites in the game and calculate the scores of players
 		for(var site in GameObject.FindObjectsOfType(ConflictSite) as ConflictSite[]){ 
 			playerIndex = playerManager.playerList.IndexOf(site.controllingPlayer);
+			if(site.typeName == "castle")
+			{
+				scores[playerIndex] += 2;
+			}
+			else
+			{
 			scores[playerIndex]++;
+			}
 		}
 		
 		//This for loop displays the players in order of their scores
