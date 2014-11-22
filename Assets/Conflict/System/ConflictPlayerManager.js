@@ -14,6 +14,7 @@ class ConflictPlayerManager extends Photon.MonoBehaviour {
 	var synchronizedRNGList: List.<int> = List.<int>();			// this list of random ints is sent by the master client to all other clients
 																//		and updated as needed. It is used whenever a random number must be generated on
 																//		all clients for the same purpose to ensure everyone uses the same number.
+	var playerSitesCapturedQueue: List.<ConflictSite>[] = [List.<ConflictSite>(), List.<ConflictSite>(), List.<ConflictSite>(), List.<ConflictSite>(), List.<ConflictSite>()];
 	
 	// Methods
 	function Start() {
@@ -36,9 +37,7 @@ class ConflictPlayerManager extends Photon.MonoBehaviour {
 				photonView.RPC("EnqueueRandomNumber",PhotonTargets.Others,newRandomNumber);
 			}
 		}
-		
-		
-	}	
+	}	 
 	
 	function AssignPlayerNumbers() {
 		// go through each player in the room and assign a number by adding them to the player list

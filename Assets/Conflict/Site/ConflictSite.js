@@ -216,6 +216,24 @@ class ConflictSite extends MonoBehaviour {
 			uncapturedSitesRemaining++;
 		}
 		
+		// update capture queues
+		if (startingController != controllingPlayer) {
+			// get player manager
+			var playerManager = GameObject.FindObjectOfType(ConflictPlayerManager) as ConflictPlayerManager;
+			
+			// remove from starting controller if non-null
+			if (startingController != null) {
+				var startingPlayerIndex = playerManager.playerList.IndexOf(startingController);
+				playerManager.playerSitesCapturedQueue[startingPlayerIndex].Remove(this);
+			}
+			
+			// add to new controller if non-null
+			if (controllingPlayer != null) {
+				var controllingPlayerIndex = playerManager.playerList.IndexOf(controllingPlayer);
+				playerManager.playerSitesCapturedQueue[startingPlayerIndex].Add(this);
+			}
+		}
+		
 		UpdateFrames();
 	}	
 	

@@ -192,11 +192,26 @@ class ConflictDiplomacyManager extends Photon.MonoBehaviour {
 	}
 	
 	function BreakAllianceBetweenPlayers(betrayingPlayer: PhotonPlayer, victimPlayer: PhotonPlayer) {
-		// TODO this needs to cause a punishment to the betraying player. FOR NOW, we should just call this method whenever
 		//		an alliance is broken
 		var betrayingPlayerIndex = playerManager.playerList.IndexOf(betrayingPlayer);
 		var victimPlayerIndex = playerManager.playerList.IndexOf(victimPlayer);
 		ConflictLog.LogMessage("Player "+playerManager.playerColorStringList[betrayingPlayerIndex] + " betrayed player " + playerManager.playerColorStringList[victimPlayerIndex]+"!"); 
+	
+		// get last two captured sites of betraying player and set allegiance and defense to 1
+		var betrayerList = playerManager.playerSitesCapturedQueue[betrayingPlayerIndex];
+		if (betrayerList.Count > 1) {
+			var betrayingSite = betrayerList[betrayerList.Count - 1];
+			betrayingSite.allegiance = 1;
+			betrayingSite.defense = 1;
+			betrayingSite = betrayerList[betrayerList.Count - 2];
+			betrayingSite.allegiance = 1;
+			betrayingSite.defense = 1;
+		}
+		else if (betrayerList.Count > 0) {
+			var betrayingSite2 = betrayerList[betrayerList.Count - 1];
+			betrayingSite2.allegiance = 1;
+			betrayingSite2.defense = 1;
+		}
 	}
 	
 	// MARK: RPCs
