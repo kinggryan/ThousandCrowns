@@ -1,3 +1,33 @@
+v1.28.3 (16. October 2014)
+Fixed: Project files in Asset Store.
+
+v1.28.2 (13. October 2014)
+Fixed: PUN now loads the new PunSceneSettingsFile no matter where it is in the project. It can be relocated but it gets by default created next to the PunSceneSettings.cs.
+Updated: Included .chm and .pdf documentation files.
+
+v1.28.1 (26. September 2014)
+Fixed: PhotonViewID assignment. This got broken in a subtle way when we added the PunSceneSettings file. Please update. For each scene with any PhotonView in, edit at least one PhotonView.viewID in the inspector and save the scene.
+
+v1.28 (23. September 2014)
+Changed: Compile conditions for WII U should work now! The demos don't run out of the box on Wii U though. You need to adjust some screen settings to get the GUI and input right.
+Changed: Ping on native platforms does not disconnect PUN anymore.
+Updated: FindFriends documentation.
+Added: PunSceneSettings. This allows you to define the minimum value for ViewIDs per scene-file name. This helps to avoid clashes between ViewIDs when switching scenes or loading multiple incrementally. A PunSceneSettingsFile is created and only used in the Editor. Add names of scenes and their minimum ViewID value. Any scene that is not entered, begins at 0. You must edit at any PhotonView in each scene to correct the scene-views! Save the scenes.
+Updated: To library v4.0.0.5 which fixes a problem with CRC Checking and reduces the amount of logging it does. See details in the separate release history file.
+
+
+v1.27 (15. September 2014)
+Updated: Chat can now be used with PUN+ (after a Chat API update)! Updated assemblies and native plugins for PUN+.
+Added: ServerSettings for PUN+ will not allow you to use TCP. PUN+ uses reliable UDP. Added a note about this fact in the inspector for ServerSettings files.
+Added: When switching the protocol for self-hosted server in ServerSettings, the port is switched to fit the new protocol, unless it was a custom port already.
+Fixed: Issue with "Best Region" hosting option and wrong AppIds. In this case, we now disconnect and call OnFailedToConnectToPhoton(DisconnectCause.InvalidAuthentication) and disconnect. Also, no pinging is done in this error case. 
+Changed: When calling Connect*(null), the PhotonNetwork.gameVersion is not changed. You could set it once in a project and leave it alone in Connect*().
+Added: PhotonNetwork.gameVersion caches the game version that gets set via any of the Connect-methods. This can be useful when a client needs to re-connect.
+Internal: The two internal cleanup methods LeftRoomCleanup() and LeftLobbyCleanup() are no longer called from various places but only on disconnect (which happens when you leave a room, too) and LeaveLobby(). This is cleaner internally.
+Added: OnConnectionFail callback with the case DisconnectCause.AuthenticationTicketExpired. This is a rare disconnect cause which usually means our server's timing is mixed up or your client uses a very (!) old authentication ticket. Handle this by connecting again (which will do a fresh authenticate).
+Changed: The callback OnPhotonInstantiate is now called via GameObject.SendMessage() like any other callback (as listed by enum PhotonNetworkingMessage). OnPhotonInstantiate can be a coroutine. If your implementation has 0 parameters it will be fine, too.
+Updated: To latest Photon Unity dll v4.0.0.3. This now tries to tell the server when the client timed out (used in counters to analyze issues) and it uses a newer native-socket-api. This is incompatible with older libs in Assets\Plugins\Android and Assets\Plugins\iOS! Update all when you use PUN+.
+
 v1.26.1 (11. August 2014)
 Fixed: Nullreference Exception on import (due to ServerSettings RPC List).
 
@@ -66,7 +96,6 @@ Added: Commented-out potential solution for OfflineMode RPCs which go to all via
 Updated: Reference documentation. PhotonNetworkingMessage is now well documented, PhotonView.RPC and some others are improved. Also the organization of "General" topics is improved.
 Changed: When setting offlineMode to true, PUN now directly calls OnConnectedToMaster. This is the same workflow as if you go online but not into a lobby. There won't be any room-listing in offlineMode, so this hopefully makes sense.
 Updated: To latest Photon Unity dll v4.0.0.2.
-
 
 v1.25.2 (03. April 2014)
 Fixed: ConnectToBestRegion now sets the found best region's address and automatically return to it when leaving a room. This fixes an issue where the server's address becomes empty.

@@ -599,6 +599,9 @@ public enum DisconnectCause
 
     /// <summary>(32767) The Photon Cloud rejected the sent AppId. Check your Dashboard and make sure the AppId you use is complete and correct.</summary>
     InvalidAuthentication = ErrorCode.InvalidAuthentication,
+
+    /// <summary>(32753) The Authentication ticket expired. Handle this by connecting again (which includes an authenticate to get a fresh ticket).</summary>
+    AuthenticationTicketExpired = ErrorCode.AuthenticationTicketExpired,
 }
 
 /// <summary>

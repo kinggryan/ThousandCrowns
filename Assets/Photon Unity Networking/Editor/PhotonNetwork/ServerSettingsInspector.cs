@@ -40,6 +40,14 @@ public class ServerSettingsInspector : Editor
                 break;
 
             case ServerSettings.HostingOption.SelfHosted:
+                if (settings.Protocol == ConnectionProtocol.Udp && settings.ServerPort == 4530)
+                {
+                    settings.ServerPort = 5055;
+                }
+                else if (settings.Protocol == ConnectionProtocol.Tcp && settings.ServerPort == 5055)
+                {
+                    settings.ServerPort = 4530;
+                }
                 settings.ServerAddress = EditorGUILayout.TextField("Server Address", settings.ServerAddress);
                 settings.ServerAddress = settings.ServerAddress.Trim();
                 settings.ServerPort = EditorGUILayout.IntField("Server Port", settings.ServerPort);
@@ -60,6 +68,12 @@ public class ServerSettingsInspector : Editor
             default:
                 DrawDefaultInspector();
                 break;
+        }
+
+        if (PhotonEditor.CheckPunPlus())
+        {
+            settings.Protocol = ConnectionProtocol.Udp;
+            EditorGUILayout.HelpBox("You seem to use PUN+.\nPUN+ only supports reliable UDP so the protocol is locked.", MessageType.Info);
         }
 
         settings.AppID = settings.AppID.Trim();
