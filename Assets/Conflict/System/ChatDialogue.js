@@ -3,20 +3,9 @@
 
 class ChatDialogue extends Photon.MonoBehaviour {
 
-	var left: float = 20;
-	var top: float = 70;
-	var width: float = 235;
-	var height: float = 200;
-	
-	var textLeft: float = 20;
-	var textTop: float = 100;
-	var textWidth: float = 235;
-	var textHeight: float = 25;
-	
-	var buttonLeft: float = 257;
-	var buttonTop: float = 100;
-	var buttonWidth: float = 45;
-	var buttonHeight: float = 25;
+	var mainFrame: Rect = Rect(20,450,235,200);
+	var textFrame: Rect = Rect(20,100,235,25);
+	var buttonFrame: Rect = Rect(257,100,45,25);
 	
 	var messages: String[] = null;
 	var maximumMessageNumber: int = 10;
@@ -33,10 +22,9 @@ class ChatDialogue extends Photon.MonoBehaviour {
 	
 	function OnGUI() {
 		// draw all messages
-		var messageFrame = Rect(left, top, width, height);
+		var messageFrame = mainFrame;
 		
-		
-		stringToEdit = GUI.TextField (Rect (textLeft, textTop, textWidth, textHeight), stringToEdit, 25);
+		stringToEdit = GUI.TextField (textFrame, stringToEdit, 25);
 
 		GUI.contentColor = Color.black;
 		
@@ -46,13 +34,13 @@ class ChatDialogue extends Photon.MonoBehaviour {
 			messageFrame.y += 15;
 		}
 		
-		if (GUI.Button (Rect (buttonLeft, buttonTop, buttonWidth, buttonHeight), "Send"))
+		if (GUI.Button (buttonFrame, "Send"))
 		{
 				photonView.RPC("sendMessage",PhotonTargets.All, stringToEdit);
 				stringToEdit = "";
 
 		}
-		}
+	}
 
 	@RPC
 	function sendMessage(newMessage: String) {

@@ -13,8 +13,8 @@
 class ConflictLog extends MonoBehaviour {
 	// Properties
 	var messages: String[] = null;
-	var maximumMessageNumber: int = 20;
-	var displayFrame = Rect(25,75,250,500);
+	var maximumMessageNumber: int = 10;
+	var displayFrame = Rect(25,75,250,375);
 	
 	// Methods
 	function Start() {
@@ -24,8 +24,10 @@ class ConflictLog extends MonoBehaviour {
 		}
 	
 		// Log start game message
-		LogMessage("Game Started");
-		LogMessage("GOGOOG");
+		for(var i = 0 ; i < 10 ; i++) {
+			LogMessage("Game Started");
+			LogMessage("GOGOOG");
+		}
 	}
 	
 	function LogMessageOnInstance(message: String) {
