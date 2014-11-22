@@ -3,9 +3,9 @@
 
 class ChatDialogue extends Photon.MonoBehaviour {
 
-	var mainFrame: Rect = Rect(20,450,235,200);
-	var textFrame: Rect = Rect(20,100,235,25);
-	var buttonFrame: Rect = Rect(257,100,45,25);
+	var mainFrame: Rect = Rect(20,225,235,200);
+	private var textFrame: Rect = Rect(20,380,235,25);
+	private var buttonFrame: Rect = Rect(257,380,45,25);
 	
 	var messages: String[] = null;
 	var maximumMessageNumber: int = 10;
@@ -18,7 +18,6 @@ class ChatDialogue extends Photon.MonoBehaviour {
 			message = "";
 		}
 	}
-	
 	
 	function OnGUI() {
 		// draw all messages
